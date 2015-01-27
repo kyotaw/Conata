@@ -1,4 +1,5 @@
 *.pyc
+*.log
 query_error
 data/world/
 data/address/
