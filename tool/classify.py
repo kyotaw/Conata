@@ -15,6 +15,6 @@ from nlang.base.util.util import pp
 #    lem.append(word['lemma'])
 #print pp(lem)
 
-ac = AreaClassifier(path.get_area_root())
-with open('takatuku2.txt', 'r') as f:
+ac = AreaClassifier(path.get_area_root(), recursive=False)
+with open('test.txt', 'r') as f:
     print pp(ac.classify(f.read().decode('utf_8')))

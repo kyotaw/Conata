@@ -13,7 +13,7 @@ class AreaClassifier(object):
         self.__area_path = area_path
         subarea_file_path = '/'.join([area_path, 'subarea_list'])
         if not os.path.exists(subarea_file_path):
-            print(subarea_file_path + ' not exists')
+            print(area_path + ' has no sub area')
             return
         
         self.__classifier = NaiveBayesClassifier()
@@ -50,7 +50,7 @@ class AreaClassifier(object):
         train_data = (subarea.decode('utf_8'), {'word':words})
         self.__classifier.train((subarea.decode('utf_8'), {'word':words}))
         for area, classifier in self.__parent_classifiers.items():
-            print('also parent area: ' + area)
+            print(area + ' also learning about ' + subarea)
             classifier.train((area.decode('utf_8'), {'word':words}))
     
     def __train_subarea(self, subarea, subarea_path):
@@ -65,6 +65,7 @@ class AreaClassifier(object):
         for dir_path, sub_dirs, file_names in os.walk(topics_path):
             for file in file_names:
                 file_path = '/'.join([topics_path, file])
+                print(self.__area_path + ' learning about ' + subarea + ' with ' + file_path)
                 with open(file_path, 'r') as f:
                     self.train(subarea, f.read().decode('utf_8'))
 

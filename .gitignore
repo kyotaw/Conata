@@ -1,6 +1,8 @@
 *.pyc
 *.log
 query_error
+data/
+data/raw_html/
 data/world/
 data/address/
-
+.python-version
