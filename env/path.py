@@ -6,6 +6,14 @@ from Conata.config import options
 
 CONATA_ROOT = os.path.dirname(os.path.abspath(__file__))[:-4]
 
+def get_data_root():
+    option = __get_option('DATA_ROOT')
+    return option if option != '' else '/'.join([CONATA_ROOT, 'data'])
+
+def get_address_root():
+    option = __get_option('ADDRESS_ROOT')
+    return option if option != '' else '/'.join([CONATA_ROOT, 'data', 'address'])
+
 def get_area_root():
     option = __get_option('AREA_ROOT')
     return option if option != '' else '/'.join([CONATA_ROOT, 'data', 'world', '日本'])

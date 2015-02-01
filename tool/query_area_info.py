@@ -11,19 +11,19 @@ from Conata.tool.wiki_query import query_wikipedia
 from Conata.tool.wiki_scraper import scrap_wiki
 from Conata.env import path
 
+if len(sys.argv) < 2:
+    print('usage query_area_info.py overwrite search_area_file')
+    quit()
+
 overwrite = False
 if len(sys.argv) > 1:
     overwrite = True if int(sys.argv[1]) > 0 else False
 
-search_list = []
-search_list_file = ''
-if len(sys.argv) > 2:
-    search_list_file = sys.argv[2]
-    with open(search_list_file, 'r') as f:
-        line = f.readline()
-        while line:
-            search_list.append(line[:-1])
-            line = f.readline()
+def read_lines(list, file):
+    line = file.readline()
+    while line:
+        list.append(line[:-1])
+        line = file.readline()
 
 area_root = path.get_area_root()
 scraped_text_folder = 'topics'
@@ -31,13 +31,33 @@ ignore_folders = [scraped_text_folder, '１丁目', '２丁目', '３丁目', '�
 
 log_file = codecs.open('wiki_query.log', 'w')
 
-def filter(dir_name):
-    if search_list_file == '':
-        return True
-    if dir_name in search_list:
-        return True
-    else:
-        return False
+address_delim_list = []
+with open(path.get_address_root() + '/address_delimiter') as f:
+    read_lines(address_delim_list, f)
+
+def get_dir_filter():
+    search_area_list = []
+    search_area_file = ''
+    if len(sys.argv) > 2:
+        search_area_file = sys.argv[2]
+        with open(search_area_file, 'r') as f:
+            read_lines(search_area_list, f)
+
+    def filter_dir(dir_name):
+        return True if search_area_file == '' or dir_name in search_area_list else False
+    return filter_dir
+
+def get_area_filter():
+    address_filter_list = []
+    with open(path.get_address_root() + '/address_filter') as f:
+        read_lines(address_filter_list, f) 
+    
+    def filter_area(area_name):
+        return True if area_name in address_filter_list else False
+    return filter_area
+
+filter_dir = get_dir_filter()
+filter_area = get_area_filter()
 
 def extract_characteristic_area_name(delim, area_name):
     query = ''
@@ -50,15 +70,14 @@ def extract_characteristic_area_name(delim, area_name):
     return query
 
 def get_query_word(area_name):
-    query = extract_characteristic_area_name('郡', area_name)
-    if query != '':
-        return query
-    query = extract_characteristic_area_name('町', area_name)
-    if query != '':
-        return query
-    query = extract_characteristic_area_name('大字', area_name)
-    if query != '':
-        return query
+    if filter_area(area_name):
+        return area_name
+    
+    for delim in address_delim_list:
+        query = extract_characteristic_area_name(delim, area_name)
+        if query != '':
+            return query
+    
     return area_name
 
 start = datetime.datetime.now()
@@ -69,7 +88,7 @@ for dir_path, sub_dirs, file_names in os.walk(area_root):
         log_file.write('skip ' + dir_path + '\n') 
         continue
 
-    if not filter(dir_name):
+    if not filter_dir(dir_name):
         continue
    
     folder_path = '/'.join([dir_path, scraped_text_folder])
@@ -87,7 +106,7 @@ for dir_path, sub_dirs, file_names in os.walk(area_root):
     print(log)
     log_file.write(log + '\n')
 
-    xml = query_wikipedia(dir_name)
+    xml = query_wikipedia(query)
     text = scrap_wiki(xml)
     if text == u'':
         log = 'wiki page for ' + dir_name + ' not found'

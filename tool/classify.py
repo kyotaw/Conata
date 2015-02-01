@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import os
+import datetime
 from Conata.env import path
-from Conata.area_classifier.area_classifier import AreaClassifier
+from Conata.classifier.area_classifier import AreaClassifier
 from nlang.processor.tokenizer import Tokenizer
 from nlang.base.util.util import pp
 
@@ -15,6 +16,14 @@ from nlang.base.util.util import pp
 #    lem.append(word['lemma'])
 #print pp(lem)
 
-ac = AreaClassifier(path.get_area_root(), recursive=False)
+start = datetime.datetime.now()
+
+ac = AreaClassifier(path.get_area_root(), recursive=True)
 with open('test.txt', 'r') as f:
     print pp(ac.classify(f.read().decode('utf_8')))
+
+time = datetime.datetime.now() - start
+
+print(pp(ac._AreaClassifier__classifier.informative_features(10)))
+
+print('completed! time : ' + str(time.seconds) + ' sec')
