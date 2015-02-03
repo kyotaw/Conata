@@ -2,6 +2,8 @@
 
 import os
 import datetime
+import sys
+import pickle
 from Conata.env import path
 from Conata.classifier.area_classifier import AreaClassifier
 from nlang.processor.tokenizer import Tokenizer
@@ -18,12 +20,15 @@ from nlang.base.util.util import pp
 
 start = datetime.datetime.now()
 
-ac = AreaClassifier(path.get_area_root(), recursive=True)
+ac = AreaClassifier(path.get_area_root(), recursive=int(1))
 with open('test.txt', 'r') as f:
     print pp(ac.classify(f.read().decode('utf_8')))
 
 time = datetime.datetime.now() - start
 
 print(pp(ac._AreaClassifier__classifier.informative_features(10)))
+
+with open('area_classifier.pickle', 'wb') as f:
+    pickle.dump(ac, f)
 
 print('completed! time : ' + str(time.seconds) + ' sec')

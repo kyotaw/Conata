@@ -4,16 +4,21 @@ from xml.sax.saxutils import unescape
 from bs4 import BeautifulSoup, NavigableString, Tag
 
 def scrap_wiki(doc):
-    soup = BeautifulSoup(unicode(unescape(doc, {'&quot;':'\"'})))
-    rev_tag = soup.find('rev')
-    if not rev_tag:
-        return u''
-    
-    article = u''
-    for string in rev_tag.stripped_strings:
-        article += string
+	soup = BeautifulSoup(unicode(unescape(doc, {'&quot;':'\"'})))
+	
+	warning = soup.find('warnings')
+        if warning:
+            warning.decompose()
 
-    if article[:9] == '#REDIRECT':
-        return u''
+        navi = soup.find('table', class_='navbox')
+        if navi:
+            navi.decompose()
+	
+	article = u''
+	for string in soup.stripped_strings:
+		article += string
 
-    return unicode(article)
+	if article[:9] == '#REDIRECT':
+		return u''
+
+	return unicode(article)
