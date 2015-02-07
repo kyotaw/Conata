@@ -20,9 +20,11 @@ from nlang.base.util.util import pp
 
 start = datetime.datetime.now()
 
-ac = AreaClassifier(path.get_area_root(), recursive=int(1))
+#ac = AreaClassifier(path.get_area_root(), recursive=int(0))
+with open('area_classifier.pickle', 'rb') as f:
+    ac = pickle.load(f)
 with open('test.txt', 'r') as f:
-    print pp(ac.classify(f.read().decode('utf_8')))
+    print( pp(ac.classify(f.read())))
 
 time = datetime.datetime.now() - start
 

@@ -14,7 +14,7 @@ class AreaClassifier(object):
         subarea_path = '/'.join([self.__area_path, subarea])
         pc = self.__parent_classifiers.copy()
         pc[subarea] = self.__classifier
-        self.__subarea_classifiers[subarea.decode('utf_8')] = AreaClassifier(subarea_path, pc, self.__recursive)
+        self.__subarea_classifiers[subarea] = AreaClassifier(subarea_path, pc, self.__recursive)
 
 
     def __init__(self, area_path, parent_classifiers={}, recursive=True, inclusive=False):
@@ -41,11 +41,21 @@ class AreaClassifier(object):
                 subarea = f.readline()[:-1]
         
         subarea_thread_list = []
+        max_thread_count = 12
+        thread_count = max_thread_count
         if self.__is_recursive():
             for subarea in subarea_list:
-                thread = threading.Thread(target=AreaClassifier.__init_subarea, name=subarea, args=(self, subarea))
-                thread.start()
-                subarea_thread_list.append(thread)
+                if thread_count > 0:
+                    thread = threading.Thread(target=AreaClassifier.__init_subarea, name=subarea, args=(self, subarea))
+                    thread.start()
+                    subarea_thread_list.append(thread)
+                    thread_count -= 1
+                else:
+                    AreaClassifier.__init_subarea(self, subarea)
+                    for thread in subarea_thread_list:
+                        thread.join()
+                    thread_count = max_thread_count
+                    subarea_thread_list = []
 
         for subarea in subarea_list:
             self.__train_subarea(subarea)
@@ -53,7 +63,7 @@ class AreaClassifier(object):
         for thread in subarea_thread_list:
             thread.join()
                  
-        print(pp(self.__classifier.informative_features(5)))
+        #print(pp(self.__classifier.informative_features(5)))
     
     def classify(self, text):
         if not self.__classifier:
@@ -64,12 +74,12 @@ class AreaClassifier(object):
 
     def train(self, subarea, text):
         features = self.__get_feature(text)
-        self.__classifier.train((subarea.decode('utf_8'), features))
+        self.__classifier.train((subarea, features))
         
         if self.__inclusive:
             for area, classifier in self.__parent_classifiers.items():
                 print(area + ' also learning about ' + subarea)
-                classifier.train((area.decode('utf_8'), features))
+                classifier.train((area, features))
     
    
     def __classify(self, areas, features):
@@ -93,7 +103,7 @@ class AreaClassifier(object):
                 file_path = '/'.join([topics_path, file])
                 print(self.__area_path + ' learning about ' + subarea + ' with ' + file_path)
                 with open(file_path, 'r') as f:
-                    self.train(subarea, f.read().decode('utf_8'))
+                    self.train(subarea, f.read())
     
     def __get_feature(self, text):
         tagged_words = self.__tokenizer.tag(text)
